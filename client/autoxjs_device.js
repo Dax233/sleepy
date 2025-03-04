@@ -33,6 +33,7 @@ function error(msg) {
 }
 
 var last_status = '';
+var times = 0;
 
 function check_status() {
     /*
@@ -69,8 +70,19 @@ function send_status() {
 
     // 判断是否与上次相同
     if (app_name == last_status) {
-        log('same as last status, bypass request');
-        return;
+        times = parseInt(times) + 1; // 确保 times 是整数
+        log(`same as last status, times: ${times}`);
+        if (times >= 200) { // 设置十分钟超时
+            log('times reached 200, resetting app_name and times');
+            app_name = '';
+            last_status = '';
+        } else {
+            log('same as last status, bypass request');
+            return;
+        }
+    } else {
+        times = 0;
+        log('status changed, reset times to 0');
     }
 
     // 判断是否在忽略列表中
@@ -86,9 +98,11 @@ function send_status() {
     if (app_name == '') {
         log('using: false');
         var using = false;
+        stas = 1
     } else {
         log('using: true');
         var using = true;
+        stas = 0
     }
 
     // POST to api
@@ -102,6 +116,9 @@ function send_status() {
         'app_name': app_name
     });
     log(`response: ${r.body.string()}`);
+    log(`GET ${SET_API_URL}`);
+    resp = http.get(`${SET_API_URL}?secret=${SECRET}&status=${stas}`);
+    log(`[/set] Response: ${resp.status} - ${resp.body.string()}`);
 }
 
 
