@@ -71,20 +71,21 @@ function send_status() {
 
     // 判断是否与上次相同
     if (app_name == last_status) {
-        times = parseInt(times) + 1; // 确保 times 是整数
+        times = parseInt(times) + 1;
         log(`same as last status, times: ${times}`);
-        if (times >= 200) { // 设置十分钟超时
+        if (times >= 200) {
             log('times reached 200, resetting app_name and times');
-            app_name = '';
-            last_status = '';
+            handing = true;
         } else {
             log('same as last status, bypass request');
             return;
         }
     } else {
         times = 0;
+        handing = false;
         log('status changed, reset times to 0');
     }
+
 
     // 判断是否在忽略列表中
     for (let i = 0; i < SKIPPED_NAMES.length; i++) {
@@ -104,6 +105,15 @@ function send_status() {
         log('using: true');
         var using = true;
         stas = 0
+    }
+    if (handing) {
+        log('handing: true');
+        if (times >= 201) {
+            log('bypass because of handing');
+            return ;
+        }
+        using = false;
+        stas = 1;
     }
 
     // POST to api
