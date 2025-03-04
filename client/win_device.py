@@ -316,7 +316,12 @@ def do_update():
             )
             debug(f'Response: {resp.status_code} - {resp.json()}')
             if resp.status_code != 200 and not DEBUG:
-                print(f'Error! Response: {resp.status_code} - {resp.json()}')
+                print(f'Error! Response: {resp.status_code} - {resp.json()}')         
+            stat = 0
+            if using == False:
+                stat = 1
+            resp = get(f'{SERVER}/set?secret={SECRET}&status={stat}')
+            print(f'[/set] Response: {resp.status_code} - {resp.json()}')
             last_window = window
         except Exception as e:
             print(f'Error: {e}')
