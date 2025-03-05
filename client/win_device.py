@@ -406,46 +406,46 @@ def do_update():
                 return
             else:
                 # 鼠标状态改变 -> 将窗口名称设为上次 (非未在使用) 的名称
-                print(
-                    f'set app name to last window: `{last_window}`', print_only=True)
+                print(f'set app name to last window: `{last_window}`', print_only=True)
                 window = last_window
 
         # 发送状态更新
         print(f'Sending update: using = {using}, app_name = "{window}", idle = {mouse_idle}')
 
-
-        try:
-            response = get("https://miraiseori-sleepy.hf.space/query")
-            if response.status_code == 200:
-                data = response.json()
-                if data.get("success"):
-                    devices = data.get("device", {})
-                    otherUsing = False
-                    for device_id, device_info in devices.items():
-                        if device_id == DEVICE_ID:
-                            continue
-                        using = device_info.get("using", "未知状态")
-                        if using == True:
-                            otherUsing = True
-                            device_name = device_info.get("show_name", "未知设备")
-                            print(f'{device_name} is in using.')
-        except Exception as e:
-            otherUsing = False
-            print(f'Error! otherUsing False!')
-            
         try:
             resp = send_status(
                 using=using,
-                app_name=window,
-                id=DEVICE_ID,
-                show_name=DEVICE_SHOW_NAME
+                app_name=window
             )
             debug(f'Response: {resp.status_code} - {resp.json()}')
             if resp.status_code != 200 and not DEBUG:
-                print(f'Error! Response: {resp.status_code} - {resp.json()}')         
+                print(f'Error! Response: {resp.status_code} - {resp.json()}')
+            
             stat = 0
-            if using == False:
+            try:
+                response = get("https://miraiseori-sleepy.hf.space/query")
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get("success"):
+                        devices = data.get("device", {})
+                        otherUsing = False
+                        for device_id, device_info in devices.items():
+                            if device_id == DEVICE_ID:
+                                continue
+                            device_using = device_info.get("using", "未知状态")
+                            if device_using == True:
+                                otherUsing = True
+                                device_name = device_info.get("show_name", "未知设备")
+                                print(f'{device_name} is in using.')
+            except Exception as e:
+                otherUsing = False
+                print(f'Error! otherUsing False!')
+            if using == False and otherUsing == False:
                 stat = 1
+            if stat == 1:
+                print(f'stat = 1!')
+            else:
+                print(f'stat = 0!')
             resp = get(f'{SERVER}/set?secret={SECRET}&status={stat}')
             print(f'[/set] Response: {resp.status_code} - {resp.json()}')
             last_window = window
