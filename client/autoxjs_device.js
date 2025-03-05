@@ -95,6 +95,33 @@ function send_status() {
         }
     }
 
+    // 请求在线设备情况
+    var otherUsing = false;
+    try {
+        var response = http.get("https://miraiseori-sleepy.hf.space/query");
+        if (response.statusCode == 200) {
+            var data = JSON.parse(response.body.string());
+            if (data.success) {
+                var devices = data.device;
+                for (var device_id in devices) {
+                    if (device_id == ID) {
+                        continue;
+                    }
+                    var device_info = devices[device_id];
+                    var using = device_info.using;
+                    if (using) {
+                        otherUsing = true;
+                        var device_name = device_info.show_name || "未知设备";
+                        log(`${device_name} is in using.`);
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        otherUsing = false;
+        log(`Error! otherUsing False! ${e}`);
+    }
+    
     last_status = app_name;
     // 判断 using
     if (app_name == '') {
@@ -106,6 +133,12 @@ function send_status() {
         var using = true;
         stas = 0
     }
+    if (otherUsing) {
+        log('other device is using, setting using to True');
+        using = true;
+        stas = 0;
+    }
+
     if (handing) {
         log('handing: true');
         if (times >= 201) {
@@ -127,6 +160,10 @@ function send_status() {
         'app_name': app_name
     });
     log(`response: ${r.body.string()}`);
+    if (app_name = 'spacedesk') {
+        log(`[sleepy] Appname is spacedesk, unset status.`);
+        return;
+    }
     log(`GET ${SET_API_URL}`);
     resp = http.get(`${SET_API_URL}?secret=${SECRET}&status=${stas}`);
     log(`[/set] Response: ${resp.status} - ${resp.body.string()}`);
