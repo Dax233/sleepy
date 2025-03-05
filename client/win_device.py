@@ -13,7 +13,7 @@ import io
 from time import sleep
 import time  # 改用 time 模块以获取更精确的时间
 from datetime import datetime
-from requests import post
+from requests import post, get
 import threading
 import win32api  # type: ignore - 勿删，用于强忽略非 windows 系统上 vscode 找不到模块的警告
 import win32con  # type: ignore
@@ -411,8 +411,28 @@ def do_update():
                 window = last_window
 
         # 发送状态更新
-        print(
-            f'Sending update: using = {using}, app_name = "{window}", idle = {mouse_idle}')
+        print(f'Sending update: using = {using}, app_name = "{window}", idle = {mouse_idle}')
+
+
+        try:
+            response = get("https://miraiseori-sleepy.hf.space/query")
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("success"):
+                    devices = data.get("device", {})
+                    otherUsing = False
+                    for device_id, device_info in devices.items():
+                        if device_id == DEVICE_ID:
+                            continue
+                        using = device_info.get("using", "未知状态")
+                        if using == True:
+                            otherUsing = True
+                            device_name = device_info.get("show_name", "未知设备")
+                            print(f'{device_name} is in using.')
+        except Exception as e:
+            otherUsing = False
+            print(f'Error! otherUsing False!')
+            
         try:
             resp = send_status(
                 using=using,
