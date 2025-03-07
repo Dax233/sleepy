@@ -423,7 +423,7 @@ def do_update():
             
             stat = 0
             try:
-                response = get("https://miraiseori-sleepy.hf.space/query")
+                response = get("https://sleepy.wyf9.top/query")
                 if response.status_code == 200:
                     data = response.json()
                     if data.get("success"):
