@@ -134,7 +134,7 @@ function send_status() {
     // 请求在线设备情况
     var otherUsing = false;
     try {
-        var response = http.get("https://miraiseori-sleepy.hf.space/query");
+        var response = http.get("https://sleepy.wyf9.top/query");
         if (response.statusCode == 200) {
             var data = JSON.parse(response.body.string());
             if (data.success) {
